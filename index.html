@@ -307,12 +307,10 @@
     user-select: none;
     -webkit-user-select: none;
   }
-  /* Outer viewport — clips overflow, peek via padding */
   .carousel-track-outer {
     overflow: hidden;
     position: relative;
     padding: 0 6%;
-    -webkit-overflow-scrolling: touch;
   }
   @media (max-width: 640px) {
     .carousel-track-outer { padding: 0 4%; }
@@ -322,10 +320,8 @@
     gap: 12px;
     transition: transform 0.52s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform;
-    /* prevent track from collapsing */
-    align-items: stretch;
+    align-items: flex-start; /* let each slide size itself by its own aspect-ratio */
   }
-  /* Slide: width set by JS; height = natural aspect ratio of the photo */
   .carousel-slide {
     flex-shrink: 0;
     position: relative;
@@ -337,27 +333,31 @@
     transition: opacity 0.48s ease, transform 0.48s ease, border-color 0.48s ease;
     background: var(--ink);
   }
-  /* Landscape slides: 1600×1064 ≈ 3/2 ratio */
+  /* Landscape: 1600×1064 → ratio 3:2 */
   .carousel-slide.is-landscape {
     aspect-ratio: 3 / 2;
-    max-height: 75vh;
   }
-  /* Portrait slide: 1064×1600 ≈ 2/3 ratio */
+  /* Portrait: 1064×1600 → ratio 2:3 */
   .carousel-slide.is-portrait {
     aspect-ratio: 2 / 3;
-    max-height: 90vh;
   }
+  /* On mobile, cap landscape height so it doesn't go too tall edge-to-edge */
   @media (max-width: 640px) {
-    .carousel-slide.is-landscape { max-height: 60vw; }
-    .carousel-slide.is-portrait  { max-height: 130vw; }
+    .carousel-slide.is-landscape {
+      /* width is ~92vw after padding; 3:2 means height ≈ 61vw — perfect */
+      aspect-ratio: 3 / 2;
+    }
+    .carousel-slide.is-portrait {
+      /* width is ~92vw; 2:3 means height ≈ 138vw — cap it so it fits screen */
+      aspect-ratio: unset;
+      height: 92vw; /* square-ish on small phones, full photo visible */
+    }
   }
   .carousel-slide.active {
     opacity: 1;
     transform: scale(1);
     border-color: rgba(192,57,43,0.45);
   }
-  /* Image always fills its slide fully — no crop for landscape (cover),
-     portrait naturally fills because aspect-ratios match */
   .carousel-slide img {
     position: absolute;
     inset: 0;
@@ -368,6 +368,12 @@
     display: block;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+  }
+  /* Portrait image on mobile — show full height without cropping */
+  @media (max-width: 640px) {
+    .carousel-slide.is-portrait img {
+      object-fit: contain;
+    }
   }
   .carousel-placeholder {
     display: flex;
